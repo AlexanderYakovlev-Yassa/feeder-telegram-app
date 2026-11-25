@@ -1,0 +1,36 @@
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--tg-theme-secondary-bg-color, var(--tgui--secondary_bg_color, #efeff4));
+  color: var(--tg-theme-text-color, var(--tgui--text_color, #000000));
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tma-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+}
+
+.tma-content {
+  flex: 1;
+  padding: 8px 0 16px;
+}
+
+.tma-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

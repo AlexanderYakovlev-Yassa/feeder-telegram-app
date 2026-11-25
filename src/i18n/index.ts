@@ -1,0 +1,156 @@
+import i18n from 'i18next'
+import { initReactI18next } from 'react-i18next'
+import { getTelegramWebApp } from '../utils/telegram'
+
+const resources = {
+  ru: {
+    translation: {
+      tabs: {
+        feeder: 'Кормушка',
+        schedule: 'Расписание',
+        camera: 'Камера',
+        settings: 'Профиль',
+      },
+      auth: {
+        loading: 'Вход через Telegram...',
+        notLinkedTitle: 'Аккаунт не привязан',
+        notLinkedDesc: 'Ваш Telegram ID ({{id}}) не привязан ни к одному пользователю. Добавьте его в таблицу app_user.',
+        outsideTelegramTitle: 'Откройте в Telegram',
+        outsideTelegramDesc: 'Это мини-приложение работает внутри Telegram. Для локальной разработки можно войти по паролю.',
+        username: 'Логин',
+        password: 'Пароль',
+        loginBtn: 'Войти',
+        retryBtn: 'Повторить',
+      },
+      feeder: {
+        device: 'Устройство',
+        noDevices: 'Нет доступных кормушек',
+        portion: 'Порция (г)',
+        feedNow: 'Покормить сейчас',
+        feeding: 'Отправка команды...',
+        feedSuccess: 'Команда на выдачу {{grams}} г отправлена',
+        feedError: 'Не удалось покормить',
+        audioHeader: 'Звуковой сигнал',
+        audioEmpty: 'Нет аудио-пресетов',
+        audioPlayed: 'Звук воспроизведён',
+      },
+      schedule: {
+        title: 'Расписание кормлений',
+        active: 'Активно',
+        inactive: 'Отключено',
+        addTime: 'Добавить время',
+        time: 'Время',
+        grams: 'Граммы',
+        add: 'Добавить',
+        empty: 'Расписание пусто',
+        suspensions: 'Пауза кормлений',
+        pauseToday: 'До конца дня',
+        pause3Days: 'На 3 дня',
+        noSuspensions: 'Активных пауз нет',
+        fromTo: '{{from}} — {{to}}',
+      },
+      camera: {
+        title: 'Камера',
+        noCameras: 'Нет доступных камер',
+        online: 'Онлайн',
+        offline: 'Офлайн',
+        live: 'Прямой эфир',
+        recordings: 'Записи',
+        noRecordings: 'Записей пока нет',
+        selectDay: 'Выберите день',
+        segmentsCount: '{{count}} фрагм.',
+        backToDays: 'К списку дней',
+        streamError: 'Не удалось загрузить видеопоток',
+      },
+      settings: {
+        title: 'Профиль',
+        user: 'Пользователь',
+        telegramId: 'Telegram ID',
+        language: 'Язык',
+        webHintTitle: 'Расширенные настройки',
+        webHintDesc: 'Калибровка порций, зоны детекции и обучение распознавания доступны в веб-версии.',
+      },
+    },
+  },
+  en: {
+    translation: {
+      tabs: {
+        feeder: 'Feeder',
+        schedule: 'Schedule',
+        camera: 'Camera',
+        settings: 'Profile',
+      },
+      auth: {
+        loading: 'Signing in with Telegram...',
+        notLinkedTitle: 'Account not linked',
+        notLinkedDesc: 'Your Telegram ID ({{id}}) is not linked to any user. Add it to the app_user table.',
+        outsideTelegramTitle: 'Open in Telegram',
+        outsideTelegramDesc: 'This Mini App runs inside Telegram. For local development, you can sign in with a password.',
+        username: 'Username',
+        password: 'Password',
+        loginBtn: 'Sign in',
+        retryBtn: 'Retry',
+      },
+      feeder: {
+        device: 'Device',
+        noDevices: 'No feeders available',
+        portion: 'Portion (g)',
+        feedNow: 'Feed now',
+        feeding: 'Sending command...',
+        feedSuccess: 'Dispensing {{grams}} g',
+        feedError: 'Failed to feed',
+        audioHeader: 'Sound alert',
+        audioEmpty: 'No audio presets',
+        audioPlayed: 'Sound played',
+      },
+      schedule: {
+        title: 'Feeding schedule',
+        active: 'Active',
+        inactive: 'Paused',
+        addTime: 'Add time',
+        time: 'Time',
+        grams: 'Grams',
+        add: 'Add',
+        empty: 'No scheduled times',
+        suspensions: 'Feeding pause',
+        pauseToday: 'Rest of today',
+        pause3Days: 'For 3 days',
+        noSuspensions: 'No active pauses',
+        fromTo: '{{from}} — {{to}}',
+      },
+      camera: {
+        title: 'Camera',
+        noCameras: 'No cameras available',
+        online: 'Online',
+        offline: 'Offline',
+        live: 'Live',
+        recordings: 'Recordings',
+        noRecordings: 'No recordings yet',
+        selectDay: 'Select a day',
+        segmentsCount: '{{count}} clips',
+        backToDays: 'Back to days',
+        streamError: 'Failed to load video stream',
+      },
+      settings: {
+        title: 'Profile',
+        user: 'User',
+        telegramId: 'Telegram ID',
+        language: 'Language',
+        webHintTitle: 'Advanced settings',
+        webHintDesc: 'Portion calibration, detection zones, and recognition training are available in the Web UI.',
+      },
+    },
+  },
+}
+
+const tgLang = getTelegramWebApp()?.initDataUnsafe?.user?.language_code
+const initialLang = tgLang?.startsWith('en') ? 'en' : 'ru'
+
+i18n.use(initReactI18next).init({
+  resources,
+  lng: initialLang,
+  fallbackLng: 'ru',
+  interpolation: { escapeValue: false },
+})
+
+export default i18n
