@@ -82,9 +82,9 @@ export function CameraPage() {
     void loadCameras()
   }, [loadCameras])
 
-  const refreshSnapshot = useCallback(async () => {
+  const refreshSnapshot = useCallback(async (showSpinner = false) => {
     if (!token || !selectedCamera) return
-    setIsLoadingSnapshot(true)
+    if (showSpinner) setIsLoadingSnapshot(true)
     try {
       const nextUrl = await fetchCameraSnapshotUrl(selectedCamera.name, token)
       if (prevUrlRef.current) {
@@ -96,18 +96,29 @@ export function CameraPage() {
     } catch {
       setSnapshotError(t('camera.streamError'))
     } finally {
-      setIsLoadingSnapshot(false)
+      if (showSpinner) setIsLoadingSnapshot(false)
     }
   }, [token, selectedCamera, t])
 
   useEffect(() => {
     if (mode !== 'live' || !selectedCamera) return
-    void refreshSnapshot()
-    if (!autoRefresh) return
-    const timer = window.setInterval(() => {
-      void refreshSnapshot()
-    }, 3000)
-    return () => window.clearInterval(timer)
+    let cancelled = false
+    let timerId: number | undefined
+
+    const loop = async (first: boolean) => {
+      const started = performance.now()
+      await refreshSnapshot(first)
+      if (cancelled || !autoRefresh) return
+      const delay = Math.max(50, 500 - (performance.now() - started))
+      timerId = window.setTimeout(() => void loop(false), delay)
+    }
+
+    void loop(!prevUrlRef.current)
+
+    return () => {
+      cancelled = true
+      if (timerId !== undefined) window.clearTimeout(timerId)
+    }
   }, [mode, selectedCamera, autoRefresh, refreshSnapshot])
 
   useEffect(() => {
@@ -278,7 +289,7 @@ export function CameraPage() {
                 loading={isLoadingSnapshot}
                 onClick={() => {
                   hapticSelection()
-                  void refreshSnapshot()
+                  void refreshSnapshot(true)
                 }}
               >
                 {t('camera.refreshFrame')}
