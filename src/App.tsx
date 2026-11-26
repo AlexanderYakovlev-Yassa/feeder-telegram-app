@@ -128,7 +128,13 @@ function MainShell() {
           />
         )}
         {activeTab === 'schedule' && <SchedulePage device={selectedDevice} />}
-        {activeTab === 'camera' && <CameraPage />}
+        {activeTab === 'camera' && (
+          <CameraPage
+            devices={devices}
+            selectedDevice={selectedDevice}
+            onSelectDevice={setSelectedDevice}
+          />
+        )}
         {activeTab === 'plugs' && <PlugsPage />}
         {activeTab === 'settings' && <SettingsPage />}
       </div>

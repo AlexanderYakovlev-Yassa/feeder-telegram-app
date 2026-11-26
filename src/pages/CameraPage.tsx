@@ -8,12 +8,14 @@ import {
   Placeholder,
   Section,
   SegmentedControl,
+  Snackbar,
   Spinner,
   Switch,
 } from '@telegram-apps/telegram-ui'
 import { ArrowLeft, Calendar, Download, RefreshCw, Video } from 'lucide-react'
 import {
   downloadRecordingSegment,
+  feedDevice,
   fetchCameraReachability,
   fetchCameraSnapshotUrl,
   fetchCameraStatus,
@@ -22,11 +24,18 @@ import {
   fetchUserCameras,
 } from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import type { CameraDto, RecordingDayDto, SegmentInfoDto } from '../types/api'
+import type { CameraDto, DeviceDto, RecordingDayDto, SegmentInfoDto } from '../types/api'
 import { hapticImpact, hapticNotify, hapticSelection } from '../utils/telegram'
 import { formatBytes } from '../utils/time'
 
 type ViewMode = 'live' | 'recordings'
+const QUICK_FEED_GRAMS = [1, 2, 3, 4]
+
+interface CameraPageProps {
+  devices: DeviceDto[]
+  selectedDevice: DeviceDto | null
+  onSelectDevice: (device: DeviceDto) => void
+}
 
 function formatSegmentTime(seg: SegmentInfoDto): string {
   const ts = Number(seg.startTime)
@@ -36,7 +45,7 @@ function formatSegmentTime(seg: SegmentInfoDto): string {
   return seg.filename
 }
 
-export function CameraPage() {
+export function CameraPage({ devices, selectedDevice, onSelectDevice }: CameraPageProps) {
   const { t } = useTranslation()
   const { token, userId } = useAuth()
   const [cameras, setCameras] = useState<CameraDto[]>([])
@@ -56,6 +65,8 @@ export function CameraPage() {
   const [segments, setSegments] = useState<SegmentInfoDto[]>([])
   const [isLoadingSegments, setIsLoadingSegments] = useState(false)
   const [downloadingFile, setDownloadingFile] = useState<string | null>(null)
+  const [feedingGrams, setFeedingGrams] = useState<number | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const loadCameras = useCallback(async () => {
@@ -157,6 +168,22 @@ export function CameraPage() {
     }
   }
 
+  const handleQuickFeed = async (grams: number) => {
+    if (!token || !selectedDevice || feedingGrams !== null) return
+    hapticImpact('medium')
+    setFeedingGrams(grams)
+    try {
+      await feedDevice(selectedDevice.serialNumber, grams, token)
+      hapticNotify('success')
+      setToast(t('feeder.feedSuccess', { grams }))
+    } catch {
+      hapticNotify('error')
+      setToast(t('feeder.feedError'))
+    } finally {
+      setFeedingGrams(null)
+    }
+  }
+
   if (isLoading && cameras.length === 0) {
     return (
       <Placeholder>
@@ -174,6 +201,7 @@ export function CameraPage() {
     : false
 
   return (
+    <>
     <List>
       {cameras.length > 1 && (
         <Section header={t('camera.title')}>
@@ -230,38 +258,68 @@ export function CameraPage() {
 
         {mode === 'live' && (
           <>
-            <div style={{ padding: '0 12px 8px' }}>
-              {snapshotUrl ? (
-                <img
-                  src={snapshotUrl}
-                  alt={selectedCamera?.name ?? 'Camera'}
-                  style={{
-                    width: '100%',
-                    aspectRatio: '16 / 9',
-                    objectFit: 'contain',
-                    backgroundColor: '#000',
-                    borderRadius: 12,
-                    display: 'block',
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '100%',
-                    aspectRatio: '16 / 9',
-                    backgroundColor: '#000',
-                    borderRadius: 12,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {isLoadingSnapshot && <Spinner size="m" />}
-                </div>
-              )}
-              {snapshotError && (
-                <div style={{ color: 'var(--tgui--destructive_text_color)', fontSize: 13, marginTop: 6 }}>
-                  {snapshotError}
+            <div className="camera-live-layout">
+              <div className="camera-live-video">
+                {snapshotUrl ? (
+                  <img
+                    src={snapshotUrl}
+                    alt={selectedCamera?.name ?? 'Camera'}
+                    style={{ objectFit: 'contain' }}
+                  />
+                ) : (
+                  <div
+                    className="camera-live-placeholder"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {isLoadingSnapshot && <Spinner size="m" />}
+                  </div>
+                )}
+                {snapshotError && (
+                  <div style={{ color: 'var(--tgui--destructive_text_color)', fontSize: 13, marginTop: 6 }}>
+                    {snapshotError}
+                  </div>
+                )}
+              </div>
+
+              {devices.length > 0 && (
+                <div className="camera-live-controls">
+                  {devices.length > 1 && (
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {devices.map(dev => (
+                        <Button
+                          key={dev.id}
+                          size="s"
+                          mode={selectedDevice?.id === dev.id ? 'filled' : 'bezeled'}
+                          stretched
+                          onClick={() => {
+                            hapticSelection()
+                            onSelectDevice(dev)
+                          }}
+                        >
+                          {dev.name}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="camera-feed-grid">
+                    {QUICK_FEED_GRAMS.map(g => (
+                      <Button
+                        key={g}
+                        size="m"
+                        mode="filled"
+                        loading={feedingGrams === g}
+                        disabled={!selectedDevice || feedingGrams !== null}
+                        onClick={() => void handleQuickFeed(g)}
+                      >
+                        {g} г
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -353,5 +411,12 @@ export function CameraPage() {
         </Section>
       )}
     </List>
+
+      {toast && (
+        <Snackbar onClose={() => setToast(null)} duration={2200}>
+          {toast}
+        </Snackbar>
+      )}
+    </>
   )
 }
