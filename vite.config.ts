@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
   const apiBaseUrl = mode === 'development' ? '' : (env.VITE_API_BASE_URL ?? '')
 
   return {
+    base: '/tma/',
     plugins: [react()],
     server: {
       proxy: {
