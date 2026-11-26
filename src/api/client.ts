@@ -4,6 +4,7 @@ import type {
   DailySchedulerDto,
   DeviceDto,
   RecordingDayDto,
+  SmartPlugsOverviewDto,
   SuspensionDto,
 } from '../types/api'
 
@@ -145,4 +146,31 @@ export function getLivePlaylistUrl(cameraName: string): string {
 
 export function getVodPlaylistUrl(cameraName: string, date: string): string {
   return getApiUrl(`/camera/${encodeURIComponent(cameraName)}/vod/playlist.m3u8?date=${encodeURIComponent(date)}`)
+}
+
+export function fetchSmartPlugsOverview(token: string): Promise<SmartPlugsOverviewDto> {
+  return apiRequest<SmartPlugsOverviewDto>('/smart-plugs', token)
+}
+
+export function setSmartPlugPower(
+  plugName: 'phone' | 'camera',
+  on: boolean,
+  token: string,
+): Promise<SmartPlugsOverviewDto> {
+  return apiRequest<SmartPlugsOverviewDto>(`/smart-plugs/${plugName}/power`, token, {
+    method: 'POST',
+    body: JSON.stringify({ on }),
+  })
+}
+
+export function updatePhonePlugSettings(
+  autoMode: boolean,
+  minBattery: number,
+  maxBattery: number,
+  token: string,
+): Promise<SmartPlugsOverviewDto> {
+  return apiRequest<SmartPlugsOverviewDto>('/smart-plugs/phone/settings', token, {
+    method: 'PUT',
+    body: JSON.stringify({ autoMode, minBattery, maxBattery }),
+  })
 }

@@ -58,3 +58,42 @@ export interface AudioPresetDto {
   icon?: string
   custom?: boolean
 }
+
+export interface PlugStateDto {
+  online: boolean
+  on: boolean | null
+  voltageV: number | null
+  powerW: number | null
+  currentMa: number | null
+  error: string | null
+}
+
+export interface PhoneBatteryDto {
+  online: boolean
+  percentage: number | null
+  plugged: string | null
+  status: string | null
+}
+
+export interface PhonePlugSettingsDto {
+  autoMode: boolean
+  minBattery: number
+  maxBattery: number
+}
+
+export interface CameraPlugSettingsDto {
+  scheduleEnabled: boolean
+  startTime: string | null
+  endTime: string | null
+  week1Days: string[]
+  week2Days: string[]
+  currentWeek: number
+}
+
+export interface SmartPlugsOverviewDto {
+  phonePlug: PlugStateDto | null
+  cameraPlug: PlugStateDto | null
+  phoneBattery: PhoneBatteryDto | null
+  phoneSettings: PhonePlugSettingsDto | null
+  cameraSettings: CameraPlugSettingsDto | null
+}

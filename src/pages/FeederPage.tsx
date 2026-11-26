@@ -16,7 +16,7 @@ import { useAuth } from '../context/AuthContext'
 import type { AudioPresetDto, DeviceDto } from '../types/api'
 import { hapticImpact, hapticNotify, hapticSelection } from '../utils/telegram'
 
-const PORTION_PRESETS = [10, 20, 30, 50]
+const PORTION_PRESETS = [1, 2, 3, 4]
 
 interface FeederPageProps {
   devices: DeviceDto[]
@@ -33,7 +33,7 @@ export function FeederPage({
 }: FeederPageProps) {
   const { t } = useTranslation()
   const { token } = useAuth()
-  const [grams, setGrams] = useState(20)
+  const [grams, setGrams] = useState(2)
   const [isFeeding, setIsFeeding] = useState(false)
   const [presets, setPresets] = useState<AudioPresetDto[]>([])
   const [playingId, setPlayingId] = useState<string | null>(null)
@@ -125,9 +125,9 @@ export function FeederPage({
 
           <div style={{ padding: '8px 16px 4px' }}>
             <Slider
-              min={5}
-              max={100}
-              step={5}
+              min={1}
+              max={30}
+              step={1}
               value={grams}
               onChange={val => setGrams(Math.round(val))}
             />

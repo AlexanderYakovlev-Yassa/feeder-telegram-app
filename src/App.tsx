@@ -10,17 +10,18 @@ import {
   Spinner,
   Tabbar,
 } from '@telegram-apps/telegram-ui'
-import { CalendarClock, Settings, Utensils, Video } from 'lucide-react'
+import { CalendarClock, Plug, Settings, Utensils, Video } from 'lucide-react'
 import { fetchUserDevices } from './api/client'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { CameraPage } from './pages/CameraPage'
 import { FeederPage } from './pages/FeederPage'
+import { PlugsPage } from './pages/PlugsPage'
 import { SchedulePage } from './pages/SchedulePage'
 import { SettingsPage } from './pages/SettingsPage'
 import type { DeviceDto } from './types/api'
 import { getTelegramWebApp, hapticSelection } from './utils/telegram'
 
-type TabId = 'feeder' | 'schedule' | 'camera' | 'settings'
+type TabId = 'feeder' | 'schedule' | 'camera' | 'plugs' | 'settings'
 
 function DevLoginScreen() {
   const { t } = useTranslation()
@@ -128,6 +129,7 @@ function MainShell() {
         )}
         {activeTab === 'schedule' && <SchedulePage device={selectedDevice} />}
         {activeTab === 'camera' && <CameraPage />}
+        {activeTab === 'plugs' && <PlugsPage />}
         {activeTab === 'settings' && <SettingsPage />}
       </div>
 
@@ -161,6 +163,16 @@ function MainShell() {
           }}
         >
           <Video size={22} />
+        </Tabbar.Item>
+        <Tabbar.Item
+          text={t('tabs.plugs')}
+          selected={activeTab === 'plugs'}
+          onClick={() => {
+            hapticSelection()
+            setActiveTab('plugs')
+          }}
+        >
+          <Plug size={22} />
         </Tabbar.Item>
         <Tabbar.Item
           text={t('tabs.settings')}
