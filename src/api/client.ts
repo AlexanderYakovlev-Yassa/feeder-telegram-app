@@ -4,6 +4,7 @@ import type {
   DailySchedulerDto,
   DeviceDto,
   RecordingDayDto,
+  SegmentInfoDto,
   SmartPlugsOverviewDto,
   SuspensionDto,
 } from '../types/api'
@@ -140,12 +141,49 @@ export function fetchRecordingDays(cameraName: string, token: string): Promise<R
   return apiRequest<RecordingDayDto[]>(`/camera/${encodeURIComponent(cameraName)}/recordings`, token)
 }
 
-export function getLivePlaylistUrl(cameraName: string): string {
-  return getApiUrl(`/camera/${encodeURIComponent(cameraName)}/live/playlist.m3u8`)
+export function fetchRecordingSegments(
+  cameraName: string,
+  date: string,
+  token: string,
+): Promise<SegmentInfoDto[]> {
+  return apiRequest<SegmentInfoDto[]>(
+    `/camera/${encodeURIComponent(cameraName)}/recordings/${encodeURIComponent(date)}`,
+    token,
+  )
 }
 
-export function getVodPlaylistUrl(cameraName: string, date: string): string {
-  return getApiUrl(`/camera/${encodeURIComponent(cameraName)}/vod/playlist.m3u8?date=${encodeURIComponent(date)}`)
+export async function fetchCameraSnapshotUrl(cameraName: string, token: string): Promise<string> {
+  const res = await fetch(getApiUrl(`/camera/${encodeURIComponent(cameraName)}/snapshot?t=${Date.now()}`), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) {
+    throw new ApiError(res.status, `Snapshot failed (${res.status})`)
+  }
+  const blob = await res.blob()
+  return URL.createObjectURL(blob)
+}
+
+export async function downloadRecordingSegment(
+  cameraName: string,
+  filename: string,
+  token: string,
+): Promise<void> {
+  const res = await fetch(
+    getApiUrl(`/camera/${encodeURIComponent(cameraName)}/segments/${encodeURIComponent(filename)}/download`),
+    { headers: { Authorization: `Bearer ${token}` } },
+  )
+  if (!res.ok) {
+    throw new ApiError(res.status, `Download failed (${res.status})`)
+  }
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 export function fetchSmartPlugsOverview(token: string): Promise<SmartPlugsOverviewDto> {
